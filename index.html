@@ -3,7 +3,8 @@
 <head>
     <title>Getting Started with Three.js</title>
     <link rel="stylesheet" type="text/css" src="css/normalize.css">
-    <script src="js/3rdparty/three.min.js"></script>
+    <script src="lib/three.min.js"></script>
+    <script data-main="app/main" src="lib/require.js"></script>
     <script id="vertexShader" type="x-shader/x-vertex">
         uniform float time;
         uniform vec2 resolution;
@@ -34,7 +35,5 @@
     <body>
         <canvas id="canvas" width='512' height='512'></canvas>
         <div id="container"></div>
-        <script src="js/audio.js"></script>
-        <script src="js/main.js"></script>
     </body>
 </html>
