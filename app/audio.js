@@ -1,80 +1,99 @@
 define(function () {
-	var analyzeAudioAndCB = function (context, cb) {
+	var A = {
+		ctx: null,
+		analyser: null,
+		sproc: null
+	};
+
+	var SOUNDS = {};
+
+	var load_handler = function (id) {
 		return function (buffer) {
+			console.log("buffer");
 			if(!buffer) {
 				alert('Error decoding file data');
 				return;
 			}
 
-			var source, sourceJs;
-			sourceJs = context.createScriptProcessor(2048, 1, 1);
-			window.PREVENTGC = sourceJs;
-			sourceJs.buffer = buffer;
-			sourceJs.connect(context.destination);
-			analyser = context.createAnalyser();
-			analyser.smoothingTimeConstant = 0.6;
-			analyser.fftSize = 512;
-
-			source = context.createBufferSource();
+			var source = A.ctx.createBufferSource();
 			source.buffer = buffer;
 			source.loop = true;
 
-			source.connect(analyser);
-			analyser.connect(sourceJs);
-			source.connect(context.destination);
+			source.connect(A.analyser);
+			A.analyser.connect(A.sproc);
+			source.connect(A.ctx.destination);
 
-			var eq = new Uint8Array(analyser.frequencyBinCount);
-			sourceJs.onaudioprocess = function(e) {
-				analyser.getByteFrequencyData(eq);
-				boost = 0;
-				for (var i = 0; i < eq.length; i++) {
-		            boost += eq[i];
-		        }
-		        boost = boost / eq.length;
-		        cb(eq);
-			};
-
-			// PLAY
-			source.start(0);
-		};
-
+			SOUNDS[id] = source;
+		}
 	};
 
 	var audioAnalyzer = function(cb) {
-		var context;
-		var analyser;
-		var url = '../audio/song.mp3';
 		var boost = 0;
+		var urls = [{id: "main", url: '../audio/song.mp3'},
+				{id: "kick_test", url: '../audio/kick.wav'}
+				];
 
 		try {
-			context = new AudioContext();
+			A.ctx = new AudioContext();
 		}
 		catch(e) {
 			alert('Web Audio API is not supported in this browser');
 		}
 
-		var request = new XMLHttpRequest();
-		request.open("GET", url, true);
-		request.responseType = "arraybuffer";
+		A.sproc = A.ctx.createScriptProcessor(2048, 1, 1);
+		window.PREVENTGC = A.sproc;
+		//A.sproc.buffer = buffer;
+		A.sproc.connect(A.ctx.destination);
+		A.analyser = A.ctx.createAnalyser();
+		A.analyser.smoothingTimeConstant = 0.6;
+		A.analyser.fftSize = 512;
 
-		request.onload = function() {
-			context.decodeAudioData(
-				request.response,
-				analyzeAudioAndCB(context, cb),
-				function(error) {
-					alert('Decoding error:' + error);
-				}
-			);
+		var eq = new Uint8Array(A.analyser.frequencyBinCount);
+		A.sproc.onaudioprocess = function(e) {
+			A.analyser.getByteFrequencyData(eq);
+			boost = 0;
+			for (var i = 0; i < eq.length; i++) {
+	            boost += eq[i];
+	        }
+	        boost = boost / eq.length;
+	        cb(eq);
 		};
 
-		request.onerror = function() {
-			alert('buffer: XHR error');
-		};
 
-		request.send();
+		for (var i = 0; i < urls.length; i++) {
+			// TODO: loop thru urls
+			var request = new XMLHttpRequest();
+			request.open("GET", urls[i].url, true);
+			request.responseType = "arraybuffer";
+
+			var id = urls[i].id;
+
+			request.onload = function() {
+				A.ctx.decodeAudioData(
+					request.response,
+					load_handler(id),
+					function(error) {
+						alert('Decoding error:' + error);
+					}
+				);
+			};
+
+			request.onerror = function() {
+				alert('buffer: XHR error');
+			};
+
+			request.send();
+		}
+	};
+
+	var play = function(id) {
+		if (SOUNDS[id]) {
+			SOUNDS[id].start(0);
+		}
 	};
 
 	return {
-		audioAnalyzer: audioAnalyzer
+		audioAnalyzer: audioAnalyzer,
+		play: play
 	};
 });

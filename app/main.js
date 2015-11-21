@@ -33,7 +33,8 @@ define(function (require) {
     G.ctx.putImageData(img, 0, 0);
   }
 
-  require('./audio').audioAnalyzer(function (eq) {
+  var A = require('./audio');
+  A.audioAnalyzer(function (eq) {
     draw_canvas(eq);
   });
 
@@ -79,4 +80,12 @@ define(function (require) {
 
   init();
   animate();
+
+  document.getElementById("kick_test").onclick = function() {
+    A.play("kick_test");
+  }
+
+  A.play("main")
+
+
 });
