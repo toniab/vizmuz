@@ -8,22 +8,31 @@ define(function () {
 	var SOUNDS = {};
 
 	var load_handler = function (id) {
+		console.log(id);
 		return function (buffer) {
-			console.log("buffer");
+
 			if(!buffer) {
 				alert('Error decoding file data');
 				return;
 			}
 
-			var source = A.ctx.createBufferSource();
-			source.buffer = buffer;
-			source.loop = true;
+			SOUNDS[id] = buffer;
 
-			source.connect(A.analyser);
-			A.analyser.connect(A.sproc);
-			source.connect(A.ctx.destination);
+			if (id == 'main') {
+				play("main");
+			}
+		}
+	};
 
-			SOUNDS[id] = source;
+	var request_on_load_maker = function(id, request) {
+		return function () {
+			A.ctx.decodeAudioData(
+				request.response,
+				load_handler(id),
+				function(error) {
+					alert('Decoding error:' + error);
+				}
+			);
 		}
 	};
 
@@ -42,7 +51,7 @@ define(function () {
 
 		A.sproc = A.ctx.createScriptProcessor(2048, 1, 1);
 		window.PREVENTGC = A.sproc;
-		//A.sproc.buffer = buffer;
+
 		A.sproc.connect(A.ctx.destination);
 		A.analyser = A.ctx.createAnalyser();
 		A.analyser.smoothingTimeConstant = 0.6;
@@ -61,22 +70,11 @@ define(function () {
 
 
 		for (var i = 0; i < urls.length; i++) {
-			// TODO: loop thru urls
 			var request = new XMLHttpRequest();
 			request.open("GET", urls[i].url, true);
 			request.responseType = "arraybuffer";
 
-			var id = urls[i].id;
-
-			request.onload = function() {
-				A.ctx.decodeAudioData(
-					request.response,
-					load_handler(id),
-					function(error) {
-						alert('Decoding error:' + error);
-					}
-				);
-			};
+			request.onload = request_on_load_maker(urls[i].id, request);
 
 			request.onerror = function() {
 				alert('buffer: XHR error');
@@ -88,7 +86,19 @@ define(function () {
 
 	var play = function(id) {
 		if (SOUNDS[id]) {
-			SOUNDS[id].start(0);
+			var buffer = SOUNDS[id];
+			var source = A.ctx.createBufferSource();
+			source.buffer = buffer;
+
+			if (id == 'main') {
+				// A.sproc.buffer = buffer;
+				source.loop = true;
+			}
+
+			source.connect(A.analyser);
+			A.analyser.connect(A.sproc);
+			source.connect(A.ctx.destination);
+			source.start(0);
 		}
 	};
 

@@ -82,10 +82,9 @@ define(function (require) {
   animate();
 
   document.getElementById("kick_test").onclick = function() {
+    // A.play("main");
     A.play("kick_test");
   }
-
-  A.play("main")
 
 
 });
