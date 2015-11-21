@@ -23,10 +23,8 @@ define(function () {
 			analyser.connect(sourceJs);
 			source.connect(context.destination);
 
-			console.log("MMM");
 			var eq = new Uint8Array(analyser.frequencyBinCount);
 			sourceJs.onaudioprocess = function(e) {
-				console.log("HAI");
 				analyser.getByteFrequencyData(eq);
 				boost = 0;
 				for (var i = 0; i < eq.length; i++) {

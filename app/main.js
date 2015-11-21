@@ -1,33 +1,14 @@
 define(function (require) {
-  // Load any app-specific modules
-  // with a relative require call,
-  // like:
-  var analyzer = require('./audio').audioAnalyzer;
 
-  analyzer(function (eq) {
-    draw_canvas(eq);
-  });
-
-  var canvas = document.getElementById('canvas');
-  var canvasWidth  = canvas.width;
-  var canvasHeight = canvas.height;
-  var ctx = canvas.getContext('2d');
-
-  var container;
-  var camera
-    , scene
-    , renderer;
-  var uniforms
-    , material
-    , mesh;
-
-
-  init();
-
-  var startTime = Date.now();
-
-  animate();
-  var WAT;
+  var G = {
+    canvas: document.getElementById('canvas')
+  , ctx: this.canvas.getContext('2d')
+  , camera: null
+  , scene: null
+  , renderer: null
+  , shaderTexture: null
+  , uniforms: null
+  }
 
   function setPixel(imageData, x, y, r, g, b, a) {
       index = (x + y * imageData.width) * 4;
@@ -39,7 +20,7 @@ define(function (require) {
 
   function draw_canvas(eq) {
     var pos = 0;
-    var img = ctx.createImageData(256,20);
+    var img = G.ctx.createImageData(256,20);
     var x, y, r, g, b;
     for (var i = 0; i < eq.length; i++) {
       x = i;
@@ -48,33 +29,37 @@ define(function (require) {
       g = 0;
       b = 0;
       setPixel(img, x, y, r, g, b, 255);
-      ctx.putImageData(img, 0, 0);
     }
+    G.ctx.putImageData(img, 0, 0);
   }
 
+  require('./audio').audioAnalyzer(function (eq) {
+    draw_canvas(eq);
+  });
+
   function init() {
-    container = document.getElementById( 'container' );
-    camera = new THREE.Camera();
-    camera.position.z = 1;
-    scene = new THREE.Scene();
-    WAT = new THREE.Texture(canvas);
-    uniforms = {
+    var container = document.getElementById( 'container' );
+    G.camera = new THREE.Camera();
+    G.camera.position.z = 1;
+    G.scene = new THREE.Scene();
+    G.shaderTexture = new THREE.Texture(canvas);
+    G.uniforms = {
       time: { type: "f"
             , value: 1.0 }
     , resolution: { type: "v2", value: new THREE.Vector2() }
-    , magic_tex: { type: "t", value: WAT }
+    , magic_tex: { type: "t", value: G.shaderTexture }
     };
-    material = new THREE.ShaderMaterial( {
-      uniforms: uniforms,
+    var material = new THREE.ShaderMaterial( {
+      uniforms: G.uniforms,
       vertexShader: document.getElementById( 'vertexShader' ).textContent,
       fragmentShader: document.getElementById( 'fragmentShader' ).textContent
     });
-    mesh = new THREE.Mesh( new THREE.PlaneGeometry( 2, 2 ), material );
-    scene.add( mesh );
+    var mesh = new THREE.Mesh( new THREE.PlaneGeometry( 2, 2 ), material );
+    G.scene.add( mesh );
     renderer = new THREE.WebGLRenderer();
     container.appendChild( renderer.domElement );
-    uniforms.resolution.value.x = window.innerWidth;
-    uniforms.resolution.value.y = window.innerHeight;
+    G.uniforms.resolution.value.x = window.innerWidth;
+    G.uniforms.resolution.value.y = window.innerHeight;
     renderer.setSize( window.innerWidth, window.innerHeight );
   }
 
@@ -83,13 +68,15 @@ define(function (require) {
     render();
   }
 
+  var startTime = Date.now();
   function render() {
     var elapsedMilliseconds = Date.now() - startTime;
     var elapsedSeconds = elapsedMilliseconds / 1000.;
-    uniforms.time.value = 60. * elapsedSeconds;
-    // draw_canvas();
-    WAT.needsUpdate = true;
-    renderer.render( scene, camera );
+    G.uniforms.time.value = 60. * elapsedSeconds;
+    G.shaderTexture.needsUpdate = true;
+    renderer.render( G.scene, G.camera );
   }
 
+  init();
+  animate();
 });
