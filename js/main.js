@@ -11,12 +11,36 @@ var uniforms
   , material
   , mesh;
 
+
 init();
 
 var startTime = Date.now();
 
 animate();
 var WAT;
+
+function setPixel(imageData, x, y, r, g, b, a) {
+    index = (x + y * imageData.width) * 4;
+    imageData.data[index+0] = r;
+    imageData.data[index+1] = g;
+    imageData.data[index+2] = b;
+    imageData.data[index+3] = a;
+}
+
+function draw_canvas() {
+  var pos = 0;
+  var img = ctx.createImageData(256,20);
+  var x, y, r, g, b;
+  for (var i = 0; i < eq.length; i++) {
+    x = i;
+    y = 0;
+    r = eq[i];
+    g = 0;
+    b = 0;
+    setPixel(img, x, y, r, g, b, 255);
+    ctx.putImageData(img, 0, 0);
+  }
+}
 
 function init() {
   container = document.getElementById( 'container' );
@@ -53,8 +77,9 @@ function render() {
   var elapsedMilliseconds = Date.now() - startTime;
   var elapsedSeconds = elapsedMilliseconds / 1000.;
   uniforms.time.value = 60. * elapsedSeconds;
-  ctx.fillStyle = "rgb("+(parseInt(elapsedSeconds*100)%255)+",255,0)";
-  ctx.fillRect(0,0,300,300);
+  draw_canvas();
+  //ctx.fillStyle = "rgb("+(parseInt(elapsedSeconds*100)%255)+",255,0)";
+  //ctx.fillRect(0,0,300,300);
   WAT.needsUpdate = true;
   renderer.render( scene, camera );
 }

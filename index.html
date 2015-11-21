@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Getting Started with Three.js</title>
+    <link rel="stylesheet" type="text/css" src="css/normalize.css">
     <script src="js/3rdparty/three.min.js"></script>
     <script id="vertexShader" type="x-shader/x-vertex">
         uniform float time;
@@ -19,14 +20,12 @@
         void main() {
             vec2 pos = vec2(gl_FragCoord);
             vec4 color;
-            if (pos.x > resolution.x/2.0) {
-                color = texture2D( magic_tex
-                                 , vec2( gl_FragCoord.x/resolution.x
-                                       , gl_FragCoord.y/resolution.y)
-                                 );
-            } else {
-                color = vec4(1,1,1,1);
-            }
+
+            color = texture2D( magic_tex
+                             , vec2( gl_FragCoord.x/resolution.x/2.
+                                   , 1)
+                             );
+
             gl_FragColor = color;
         }
     </script>

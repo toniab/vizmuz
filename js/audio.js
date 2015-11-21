@@ -2,7 +2,7 @@ var context;
 var source, sourceJs;
 var analyser;
 var url = '../audio/song.mp3';
-var array = new Array();
+var eq = new Array();
 var boost = 0;
 
 try {
@@ -41,13 +41,13 @@ request.onload = function() {
 			source.connect(context.destination);
 
 			sourceJs.onaudioprocess = function(e) {
-				array = new Uint8Array(analyser.frequencyBinCount);
-				analyser.getByteFrequencyData(array);
+				eq = new Uint8Array(analyser.frequencyBinCount);
+				analyser.getByteFrequencyData(eq);
 				boost = 0;
-				for (var i = 0; i < array.length; i++) {
-		            boost += array[i];
+				for (var i = 0; i < eq.length; i++) {
+		            boost += eq[i];
 		        }
-		        boost = boost / array.length;
+		        boost = boost / eq.length;
 			};
 
 			// popup
