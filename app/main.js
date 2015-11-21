@@ -2,7 +2,11 @@ define(function (require) {
   // Load any app-specific modules
   // with a relative require call,
   // like:
-  var audio = require('./audio');
+  var analyzer = require('./audio').audioAnalyzer;
+
+  analyzer(function (eq) {
+    draw_canvas(eq);
+  });
 
   var canvas = document.getElementById('canvas');
   var canvasWidth  = canvas.width;
@@ -33,11 +37,10 @@ define(function (require) {
       imageData.data[index+3] = a;
   }
 
-  function draw_canvas() {
+  function draw_canvas(eq) {
     var pos = 0;
     var img = ctx.createImageData(256,20);
     var x, y, r, g, b;
-    var eq = audio.EQ;
     for (var i = 0; i < eq.length; i++) {
       x = i;
       y = 0;
@@ -84,7 +87,7 @@ define(function (require) {
     var elapsedMilliseconds = Date.now() - startTime;
     var elapsedSeconds = elapsedMilliseconds / 1000.;
     uniforms.time.value = 60. * elapsedSeconds;
-    draw_canvas();
+    // draw_canvas();
     WAT.needsUpdate = true;
     renderer.render( scene, camera );
   }
