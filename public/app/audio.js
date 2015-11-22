@@ -2,7 +2,8 @@ define(function () {
 	var A = {
 		ctx: null,
 		analyser: null,
-		sproc: null
+		sproc: null,
+		filter: null
 	};
 
 	var SOUNDS = {};
@@ -38,8 +39,10 @@ define(function () {
 
 	var audioAnalyzer = function(cb) {
 		var boost = 0;
-		var urls = [{id: "main", url: '../audio/song.mp3'},
-				{id: "kick_test", url: '../audio/kick.wav'}
+		var urls = [{id: "main", url: '../audio/song.mp3'}
+				, {id: "kick", url: '../audio/kick-909.mp3'}
+				, {id: "clap", url: '../audio/clap.m4a'}
+				, {id: "treble", url: '../audio/treble.mp3'}
 				];
 
 		try {
@@ -82,6 +85,10 @@ define(function () {
 
 			request.send();
 		}
+
+		A.filter = A.ctx.createBiquadFilter();
+		//A.sproc.connect(this.filter);
+    	A.filter.connect(A.ctx.destination);
 	};
 
 	var play = function(id) {
@@ -99,11 +106,41 @@ define(function () {
 			A.analyser.connect(A.sproc);
 			source.connect(A.ctx.destination);
 			source.start(0);
+			SOUNDS[id].source = source;
 		}
 	};
 
+	var stop = function(id) {
+		SOUNDS[id].source.stop();
+	}
+
+	var update_filter = function(d) {
+		// Clamp the frequency between the minimum value (40 Hz) and half of the
+		  // sampling rate.
+		  var minValue = 40;
+		  var maxValue = A.ctx.sampleRate / 2;
+		  // Logarithm (base 2) to compute how many octaves fall in the range.
+		  var numberOfOctaves = Math.log(maxValue / minValue) / Math.LN2;
+		  // Compute a multiplier from 0 to 1 based on an exponential scale.
+		  var multiplier;		if (d > 0) {
+		  A.filter.type = (typeof A.filter.type === 'string') ? 'highpass' : 1;
+      	//high pass or high shelf
+    	} else if (d < 0) {
+	      A.filter.type = (typeof A.filter.type === 'string') ? 'lowpass' : 0;
+		  multiplier = Math.pow(2, numberOfOctaves * (d - 1.0));
+		  // Get back to the frequency value between min and max.
+		  A.filter.frequency.value = maxValue * multiplier;
+	    } else {
+	      // no filter
+	    }
+	    //A.filter.Q.value = 0;
+		//A.filter.gain.value = 0;
+	}
+
 	return {
 		audioAnalyzer: audioAnalyzer,
-		play: play
+		play: play,
+		stop: stop,
+		update_filter: update_filter
 	};
 });
