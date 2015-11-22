@@ -1,0 +1,20 @@
+{
+  "name": "vizmuz",
+  "version": "0.0.1",
+  "description": "Music visualization.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "keywords": [
+    "music"
+  , "osc"
+  ],
+  "author": "Julian and Tonia",
+  "license": "MIT",
+  "devDependencies": {
+    "express": "^4.12.3",
+    "node-osc": "^0.3.0",
+    "socket.io": "^1.3.5"
+  }
+}

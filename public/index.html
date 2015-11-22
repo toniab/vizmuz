@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Getting Started with Three.js</title>
+    <link rel="stylesheet" type="text/css" src="css/normalize.css">
+    <meta name="viewport" content="width=device-width,
+        initial-scale=1, maximum-scale=1, user-scalable=0"/>
+    <script src="lib/three.min.js"></script>
+    <script src="lib/socket.io-1.1.0.js"></script>
+    <script data-main="app/main" src="lib/require.js"></script>
+    <script id="vertexShader" type="x-shader/x-vertex">
+        uniform float time;
+        uniform vec2 resolution;
+        uniform sampler2D music_tex;
+        uniform sampler2D face_tex;
+        void main() {
+            gl_Position = vec4(position, 1.0);
+        }
+    </script>
+
+    <script id="fragmentShader" type="x-shader/x-fragment">
+        uniform float time;
+        uniform vec2 resolution;
+        uniform sampler2D music_tex;
+        uniform sampler2D face_tex;
+
+        vec2 rose(float k, float t) {
+            return vec2(cos(k*t)*cos(t), cos(k*t)*sin(t));
+        }
+
+        void main() {
+            int iter = 6;
+            vec2 pos = vec2(gl_FragCoord)/resolution/2.;
+            // vec4 color;
+
+            // color = texture2D( music_tex
+            //                  , vec2( pos.x
+            //                        , 1)
+            //                  );
+
+
+            // gl_FragColor = texture2D(music_tex, vec2(pos.x,1));
+            // gl_FragColor = texture2D(music_tex, vec2(sqrt(pos.x*pos.x + pos.y*pos.y),1));
+            vec2 delta = pos - vec2(0.25,0.25);
+            float val = texture2D(music_tex, vec2(pos.x,1)).r;
+            float dist = sqrt(dot(delta*val*5.,delta*val*5.));
+            // float dist = sqrt(dot(delta,delta));
+            float specVal = texture2D(music_tex, vec2(0.2,1.)).r;
+            vec2 r = rose(5.,dist*10.);
+            if (specVal < 0.63) {
+                // gl_FragColor = texture2D(face_tex, vec2(gl_FragCoord)/resolution);
+                gl_FragColor = vec4(val,r.x,r.y,1.);
+            } else {
+                gl_FragColor = vec4(r.y,r.x,val,1.);
+            }
+        }
+    </script>
+
+</head>
+    <body>
+        <div id="kick_test">kick</div>
+        <div id="container"></div>
+        <canvas id="canvas" width='512' height='512'></canvas>
+    </body>
+</html>
