@@ -10,9 +10,9 @@ define(function (require) {
   , uniforms: null
   }
 
-  G.push_map = {1: "kick_test",
-                4: "kick_test",
-                5: "kick_test"}
+  G.push_map = {1: "kick",
+                4: "clap",
+                5: "treble"}
 
   function setPixel(imageData, x, y, r, g, b, a) {
       index = (x + y * imageData.width) * 4;
@@ -89,14 +89,17 @@ define(function (require) {
   init();
   animate();
 
-  document.getElementById("kick_test").onclick = function() {
-    // A.play("main");
-    A.play("kick_test");
-  }
-
   var socket = io();
   socket.on('push', function (data) {
       A.play(G.push_map[data.button]);
   });
+
+  socket.on('stop', function (data) {
+      A.stop(G.push_map[data.button]);
+  });
+
+  socket.on("slider", function (data) {
+      A.update_filter(data.slider);
+  })
 
 });
