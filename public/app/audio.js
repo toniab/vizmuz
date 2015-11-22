@@ -117,40 +117,19 @@ define(function () {
 	}
 
 	var update_pbr = function(d) {
+		if ( d > .85 &&  d < 1.25 ) {
+			d = 1;
+		}
 		A.pbr = d;
 		if (SOUNDS.main) {
 			SOUNDS.main.source.playbackRate.value = A.pbr;
 		}
 	}
 
-	var update_filter = function(d) {
-		// Clamp the frequency between the minimum value (40 Hz) and half of the
-		  // sampling rate.
-		  var minValue = 40;
-		  var maxValue = A.ctx.sampleRate / 2;
-		  // Logarithm (base 2) to compute how many octaves fall in the range.
-		  var numberOfOctaves = Math.log(maxValue / minValue) / Math.LN2;
-		  // Compute a multiplier from 0 to 1 based on an exponential scale.
-		  var multiplier;		if (d > 0) {
-		  A.filter.type = (typeof A.filter.type === 'string') ? 'highpass' : 1;
-      	//high pass or high shelf
-    	} else if (d < 0) {
-	      A.filter.type = (typeof A.filter.type === 'string') ? 'lowpass' : 0;
-		  multiplier = Math.pow(2, numberOfOctaves * (d - 1.0));
-		  // Get back to the frequency value between min and max.
-		  A.filter.frequency.value = maxValue * multiplier;
-	    } else {
-	      // no filter
-	    }
-	    //A.filter.Q.value = 0;
-		//A.filter.gain.value = 0;
-	}
-
 	return {
 		audioAnalyzer: audioAnalyzer,
 		play: play,
 		stop: stop,
-		update_pbr: update_pbr,
-		update_filter: update_filter
+		update_pbr: update_pbr
 	};
 });
