@@ -38,7 +38,7 @@
         }
 
         float pingPong (float val, float t) {
-            return 2./PI * asin(sin(2.*PI/t*val));
+            return linMap(0.,0.5,0.,1.,abs(2.0 * mod(val+t,t*2.)/2. - t));
         }
 
         vec4 screen (vec4 target, vec4 blend) {
@@ -49,22 +49,21 @@
             return target + blend;
         }
 
-        // vec4 hardLight (vec4 target, vec4 blend) {
-        //     if (blend < 0.5) {
-        //         return 2.*target*blend;
-        //     } else {
-        //         return 1.-2.*(1.-blend)*(1.-target);
-        //     }
-        //     // return vec4(1.);//(blend > vec4(0.5))? (1.-(1.-target)*(1.-2.*(blend-.5))) : (target*(2.*blend));
-        // }
+        vec4 hardLight (vec4 target, vec4 blend) {
+            return vec4((target.r <= 0.5) ? (2.0 * target.r * blend.r) : (1.0 - 2.0 * (1.0 - target.r) * (1.0 - blend.r)),
+                        (target.g <= 0.5) ? (2.0 * target.g * blend.g) : (1.0 - 2.0 * (1.0 - target.g) * (1.0 - blend.g)),
+                        (target.b <= 0.5) ? (2.0 * target.b * blend.b) : (1.0 - 2.0 * (1.0 - target.b) * (1.0 - blend.b)),
+                        (target.a <= 0.5) ? (2.0 * target.a * blend.a) : (1.0 - 2.0 * (1.0 - target.a) * (1.0 - blend.a)));
+        }
 
         vec4 from255 (vec3 color) {
             return vec4(color/255.,1.);
         }
 
-
         void main() {
 
+
+            float loopedTime = pingPong(time,1500.);
             vec2 pos = vec2(gl_FragCoord)/resolution;
             vec2 cartP = pos - vec2(.5,.5);
             float r = length(cartP);
@@ -72,7 +71,7 @@
 
             float val = texture2D(music_tex, vec2(0./2.,1)).r;
             // r = r*r*((sin(time/5.)+1.)/2.+0.8);
-            r = pow(r,time/1000.);//*time/100.;
+            r = pow(r,(loopedTime)/800.);//*time/100.;
             cartP = r * vec2(cos(theta),sin(theta));
             // gl_FragColor = texture2D(face_tex, cartP+.5);
 
@@ -86,13 +85,13 @@
             vec4 blue = from255(vec3(147,144,255));
             if (beatDetect < 0.63) {
                 // gl_FragColor = linearDodge(pink, linMap(-1., 1., 0., 1., sin(theta*10.*time/10.+time/10.)) * texture2D(face_tex, cartP+.5));
-                gl_FragColor = linMap(-1., 1., 0., 1., sin(theta*10.*time/10.+time/10.)) * texture2D(face_tex, cartP+.5);
+                gl_FragColor = linMap(-1., 1., 0., 1., sin(theta*10.*loopedTime/10.+loopedTime/10.)) * texture2D(face_tex, cartP+.5);
             } else {
-                gl_FragColor = linearDodge(blue, linMap(-1., 1., 0., 1., sin(theta*10.*time/10.+time/10.)) * texture2D(face_tex, cartP+.5));
+                gl_FragColor = linearDodge(blue, linMap(-1., 1., 0., 1., sin(theta*10.*loopedTime/10.+loopedTime/10.)) * texture2D(face_tex, cartP+.5));
             }
 
 
-            // gl_FragColor = vec4(pingPong(pos.x,0.1));
+            // gl_FragColor = vec4(pingPong(pos.x,.25));
 
 
 
