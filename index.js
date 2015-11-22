@@ -14,6 +14,13 @@ app.use(express.static(__dirname + '/public'));
 
 io.on('connection', function(socket){
 
+  // var x = 0;
+  // setInterval (function () {
+  //   x += 0.01;
+  //   // console.log(Math.sin(x)+1);
+  //   socket.emit('dial', { 'dial': Math.sin(x)+1 });
+  // }, 10);
+
   console.log('a user connected');
   socket.on('disconnect', function(){
     console.log('user disconnected');

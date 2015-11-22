@@ -118,7 +118,9 @@ define(function () {
 
 	var update_pbr = function(d) {
 		A.pbr = d;
-		SOUNDS.main.source.playbackRate.value = A.pbr;
+		if (SOUNDS.main) {
+			SOUNDS.main.source.playbackRate.value = A.pbr;
+		}
 	}
 
 	var update_filter = function(d) {
