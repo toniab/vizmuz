@@ -3,7 +3,8 @@ define(function () {
 		ctx: null,
 		analyser: null,
 		sproc: null,
-		filter: null
+		filter: null,
+		pbr: 1
 	};
 
 	var SOUNDS = {};
@@ -105,6 +106,7 @@ define(function () {
 			source.connect(A.analyser);
 			A.analyser.connect(A.sproc);
 			source.connect(A.ctx.destination);
+			source.playbackRate.value = A.pbr;
 			source.start(0);
 			SOUNDS[id].source = source;
 		}
@@ -112,6 +114,11 @@ define(function () {
 
 	var stop = function(id) {
 		SOUNDS[id].source.stop();
+	}
+
+	var update_pbr = function(d) {
+		A.pbr = d;
+		SOUNDS.main.source.playbackRate.value = A.pbr;
 	}
 
 	var update_filter = function(d) {
@@ -141,6 +148,7 @@ define(function () {
 		audioAnalyzer: audioAnalyzer,
 		play: play,
 		stop: stop,
+		update_pbr: update_pbr,
 		update_filter: update_filter
 	};
 });

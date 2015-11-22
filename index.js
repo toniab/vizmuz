@@ -26,16 +26,15 @@ io.on('connection', function(socket){
     if (msg[0].startsWith('/1/push')) {
       var val = msg[0].substr(-1);
       if (msg[1] == 1) {
-        socket.broadcast.emit('push', { 'button': val });
+        socket.emit('push', { 'button': val });
       } else if (msg[1] == 0 && val == 5) {
-        socket.broadcast.emit('stop', { 'button': val });
+        socket.emit('stop', { 'button': val });
       }
     } else if (msg[0].startsWith('/1/slider')) {
-      socket.broadcast.emit('slider', { 'slider': msg[1] });
+      socket.emit('slider', { 'slider': msg[1] });
     } else if (msg[0].startsWith('/1/dial')) {
-      socket.broadcast.emit('dial', { 'dial': msg[1] });
+      socket.emit('dial', { 'dial': msg[1] });
     }
-
   });
 
 });

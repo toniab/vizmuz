@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>VIZMUZ</title>
-    <link rel="stylesheet" type="text/css" src="css/normalize.css">
+    <link rel="stylesheet" type="text/css" href="css/normalize.css">
     <meta name="viewport" content="width=device-width,
         initial-scale=1, maximum-scale=1, user-scalable=0"/>
     <script src="lib/three.min.js"></script>
@@ -13,16 +13,22 @@
         uniform vec2 resolution;
         uniform sampler2D music_tex;
         uniform sampler2D face_tex;
+        uniform vec3 stretched;
+        varying vec2 vUv;
         void main() {
-            gl_Position = vec4(position, 1.0);
+            vUv = uv;
+            //gl_Position = vec4(position, 1.0);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position * stretched, 1.0);
         }
     </script>
 
     <script id="fragmentShader" type="x-shader/x-fragment">
         uniform float time;
         uniform vec2 resolution;
+        uniform vec3 stretched;
         uniform sampler2D music_tex;
         uniform sampler2D face_tex;
+        varying vec2 vUv;
         const float PI = 3.1415926536;
 
         vec2 rose(float k, float t) {
@@ -64,7 +70,8 @@
 
 
             float loopedTime = pingPong(time,1500.);
-            vec2 pos = vec2(gl_FragCoord)/resolution;
+            //vec2 pos = vec2(gl_FragCoord)/resolution;
+            vec2 pos = vUv;
             // float val = texture2D(music_tex, vec2(pos.x/2.,1)).r;
             float val = texture2D(music_tex, vec2(length(pos-.5)/2.,1)).r;
             vec2 cartP = pos - vec2(.5,.5);
@@ -72,7 +79,7 @@
             float theta = atan(cartP.y,cartP.x);
 
             // r = r*r*((sin(time/5.)+1.)/2.+0.8);
-            r = pow(r,(loopedTime)/800.)*val;//*time/100.;
+            r = pow(r,(loopedTime)/800.)*(val>0.7?val:1.);//*time/100.;
             cartP = r * vec2(cos(theta),sin(theta));
             // gl_FragColor = texture2D(face_tex, cartP+.5);
 
@@ -90,6 +97,8 @@
                 gl_FragColor = linearDodge(blue, linMap(-1., 1., 0., 1., sin(theta*10.*loopedTime/10.+loopedTime/10.)) * texture2D(face_tex, cartP+.5));
             }
 
+            //gl_FragColor = texture2D(face_tex, vUv);
+            // gl_FragColor = vec4(texture2D(music_tex, vec2(pos.x/2.,1.)).r);
             // gl_FragColor = vec4(sin(distance((pos)*10.,ceil((pos)*10.))*2.-1.));
 
         }
