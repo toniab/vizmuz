@@ -92,8 +92,8 @@ define(function (require) {
 
 
   var socket = io();
-  socket.on('touch', function (msg) {
-    console.log(msg);
+  socket.on('push', function (data) {
+      A.play("kick_test");
   });
 
 });

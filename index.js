@@ -25,9 +25,9 @@ io.on('connection', function(socket){
     if (msg[0].startsWith('/1/push')) {
       socket.broadcast.emit('push', { 'button': msg[0].substr(-1) });
     } else if (msg[0].startsWith('/1/slider')) {
-      socket.broadcast.emit('push', { 'slider': msg[1] });
+      socket.broadcast.emit('slider', { 'slider': msg[1] });
     } else if (msg[0].startsWith('/1/dial')) {
-      socket.broadcast.emit('push', { 'dial': msg[1] });
+      socket.broadcast.emit('dial', { 'dial': msg[1] });
     }
 
   });
