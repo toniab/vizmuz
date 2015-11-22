@@ -22,7 +22,7 @@ io.on('connection', function(socket){
     console.log("TouchOSC message:");
     console.log(msg);
 
-    if (msg[0].startsWith('/1/push')) {
+    if (msg[0].startsWith('/1/push') && msg[1] == 1) {
       socket.broadcast.emit('push', { 'button': msg[0].substr(-1) });
     } else if (msg[0].startsWith('/1/slider')) {
       socket.broadcast.emit('slider', { 'slider': msg[1] });
