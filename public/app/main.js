@@ -10,6 +10,10 @@ define(function (require) {
   , uniforms: null
   }
 
+  G.push_map = {1: "kick_test",
+                4: "kick_test",
+                5: "kick_test"}
+
   function setPixel(imageData, x, y, r, g, b, a) {
       index = (x + y * imageData.width) * 4;
       imageData.data[index+0] = r;
@@ -90,10 +94,9 @@ define(function (require) {
     A.play("kick_test");
   }
 
-
   var socket = io();
   socket.on('push', function (data) {
-      A.play("kick_test");
+      A.play(G.push_map[data.button]);
   });
 
 });
