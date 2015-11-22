@@ -65,13 +65,14 @@
 
             float loopedTime = pingPong(time,1500.);
             vec2 pos = vec2(gl_FragCoord)/resolution;
+            // float val = texture2D(music_tex, vec2(pos.x/2.,1)).r;
+            float val = texture2D(music_tex, vec2(length(pos-.5)/2.,1)).r;
             vec2 cartP = pos - vec2(.5,.5);
             float r = length(cartP);
             float theta = atan(cartP.y,cartP.x);
 
-            float val = texture2D(music_tex, vec2(0./2.,1)).r;
             // r = r*r*((sin(time/5.)+1.)/2.+0.8);
-            r = pow(r,(loopedTime)/800.);//*time/100.;
+            r = pow(r,(loopedTime)/800.)*val;//*time/100.;
             cartP = r * vec2(cos(theta),sin(theta));
             // gl_FragColor = texture2D(face_tex, cartP+.5);
 
@@ -84,71 +85,13 @@
             vec4 pink = from255(vec3(255,144,222));
             vec4 blue = from255(vec3(147,144,255));
             if (beatDetect < 0.63) {
-                // gl_FragColor = linearDodge(pink, linMap(-1., 1., 0., 1., sin(theta*10.*time/10.+time/10.)) * texture2D(face_tex, cartP+.5));
                 gl_FragColor = linMap(-1., 1., 0., 1., sin(theta*10.*loopedTime/10.+loopedTime/10.)) * texture2D(face_tex, cartP+.5);
             } else {
                 gl_FragColor = linearDodge(blue, linMap(-1., 1., 0., 1., sin(theta*10.*loopedTime/10.+loopedTime/10.)) * texture2D(face_tex, cartP+.5));
             }
 
+            // gl_FragColor = vec4(sin(distance((pos)*10.,ceil((pos)*10.))*2.-1.));
 
-            // gl_FragColor = vec4(pingPong(pos.x,.25));
-
-
-
-            // if (beatDetect < 0.63) {}
-
-
-            // vec2 r = rose(5.,dist*10.);
-
-
-
-            // gl_FragColor = texture2D(face_tex, pos);
-
-
-            // float dist_from_face_center = dist_2d(pos,center);
-            // gl_FragColor = vec4(dist_from_face_center,0,0,1);
-            // gl_FragColor = texture2D(face_tex, (pos*2.)*(dist_from_face_center*2.));
-
-            // gl_FragColor = texture2D(face_tex, pos);
-
-            // float distortion = linMap (0., 0.70710, 0.5, 1., dist_from_face_center);
-
-            // gl_FragColor = vec4( (pos)*(distortion)
-            //                      //(center)//*(distortion)
-            //                     ,0,1);
-
-            // gl_FragColor = vec4( (center)+(distortion)
-            //                     ,0,1);
-
-            // gl_FragColor = vec4( (pos) ,0,1);
-
-            // gl_FragColor = texture2D(face_tex, vec2(-1,-1));
-            // gl_FragColor = vec4(pos.x,pos.y,0,1);
-
-            // // vec4 color;
-
-            // // color = texture2D( music_tex
-            // //                  , vec2( pos.x
-            // //                        , 1)
-            // //                  );
-
-
-            // // gl_FragColor = texture2D(music_tex, vec2(pos.x,1));
-            // // gl_FragColor = texture2D(music_tex, vec2(sqrt(pos.x*pos.x + pos.y*pos.y),1));
-            // vec2 delta = pos - vec2(0.25,0.25);
-            // float val = texture2D(music_tex, vec2(pos.x,1)).r;
-            // float dist = sqrt(dot(delta*val*5.,delta*val*5.));
-            // // float dist = sqrt(dot(delta,delta));
-            // float specVal = texture2D(music_tex, vec2(0.2,1.)).r;
-            // vec2 r = rose(5.,dist*10.);
-            // if (specVal < 0.63) {
-            //     // gl_FragColor = texture2D(face_tex, (vec2(gl_FragCoord)/resolution*delta*2.+vec2(.5,.5)));
-            //     float d = dist_2d((vec2(gl_FragCoord)/resolution), vec2(0.5,0.5)) * val;
-            //     gl_FragColor = texture2D(face_tex, (vec2(gl_FragCoord)/resolution)*d);
-            //     // gl_FragColor = vec4(val,r.x,r.y,1.);
-            // } else {
-            //     gl_FragColor = vec4(r.y,r.x,val,1.);
-            // }
         }
     </script>
 
