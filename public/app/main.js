@@ -72,6 +72,8 @@ define(function (require) {
                 , value: THREE.ImageUtils.loadTexture('images/nicholas-cage.jpg') }
     , current_tint: {type: "v4"
                 , value: G.tints[G.curr_tint_i]}
+    , clap_fraction: { type: "f"
+                , value: 0.}
     };
     // TODO: add uniform type v3 to use for stretching on dial
 
@@ -220,9 +222,7 @@ define(function (require) {
   var socket = io();
   socket.on('push', function (data) {
       A.play(G.push_map[data.button].id);
-      if (G.push_map[data.button].model) {
-        anim_button_push(data.button);
-      }
+      anim_button_push(data.button);
   });
 
   socket.on('stop', function (data) {
@@ -234,7 +234,7 @@ define(function (require) {
   })
 
   socket.on("slider", function (data) {
-      A.update_filter(data.slider);
+      // no freq filter yet
   })
 
   //74J 75K 76L 
