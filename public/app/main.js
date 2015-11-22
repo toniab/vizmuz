@@ -90,8 +90,10 @@ define(function (require) {
 
     //bass model
     loader.load(G.push_map[1].model, function(geometry) {G.push_map[1].geometry = geometry});
+    G.push_map[1].material = new THREE.MeshLambertMaterial({map: THREE.ImageUtils.loadTexture(G.push_map[1].texture)});
     //treble model
     loader.load(G.push_map[5].model, function(geometry) {G.push_map[5].geometry = geometry;});
+    G.push_map[5].material = new THREE.MeshLambertMaterial({map: THREE.ImageUtils.loadTexture(G.push_map[5].texture)});
 
     var mesh = new THREE.Mesh( new THREE.PlaneGeometry( 2, 2 ), G.shader_material );
     //G.scene.add( mesh );
@@ -118,7 +120,7 @@ define(function (require) {
           var particle;
           if (G.push_map[d].model.endsWith("json")) {
             if (G.push_map[d].geometry)
-              particle = new THREE.Mesh(G.push_map[d].geometry, new THREE.MeshLambertMaterial({map: THREE.ImageUtils.loadTexture(G.push_map[d].texture)}));
+              particle = new THREE.Mesh(G.push_map[d].geometry, G.push_map[d].material);
               //TODO: add image as material
           } else if (G.push_map[d].model.endsWith("dae")) {
               // TODO: BG IMAGE/COLOR/ANIM? ROTATE? IDK? COLOR CHANGE?
@@ -153,7 +155,8 @@ define(function (require) {
 
     new TWEEN.Tween( particle.scale )
       .delay( delay )
-      .to( { x: 0.01, y: 0.01, /*z: 0.01*/ }, 10000 )
+      .to( { x: 0.01, y: 0.01, /*z: 0.01*/ }, 12000 )
+      .onComplete(function(){G.scene.remove( particle )})
       .start();
 
     new TWEEN.Tween( particle.rotation )
