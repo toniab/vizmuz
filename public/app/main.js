@@ -1,5 +1,5 @@
 define(function (require) {
-  var DEBUG = true;
+  var DEBUG = false;
 
   var G = {
     canvas: document.getElementById('canvas')
@@ -127,6 +127,14 @@ define(function (require) {
         G.curr_tint_i++;
         G.curr_tint_i = G.curr_tint_i % G.tints.length;
         G.uniforms.current_tint.value = G.tints[G.curr_tint_i];
+        G.uniforms.clap_fraction.value = 1;
+        G.clap_anim = setInterval(function() {
+          G.uniforms.clap_fraction.value = G.uniforms.clap_fraction.value -.1;
+          if (G.uniforms.clap_fraction.value <= 0) {
+            G.uniforms.clap_fraction.value = 0;
+            clearInterval(G.clap_anim);
+          }
+        }, 30);
     }
     for ( var i = 0; i < 10; i++ ) {
       var particle;
