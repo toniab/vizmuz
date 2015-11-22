@@ -12,9 +12,10 @@ define(function (require) {
   , shader_material: null
   }
 
-  G.push_map = {1: "kick",
-                4: "clap",
-                5: "treble"}
+  G.push_map = {1: {id: "kick", model: "../models/pyramid.json", texture: "../images/pyramid-gradient.png"},
+                4: {id:"clap"},
+                5: {id:"treble", model: "../models/diamond.json", texture: "../images/diamond-gradient.png"}
+              }
 
   function setPixel(imageData, x, y, r, g, b, a) {
       index = (x + y * imageData.width) * 4;
@@ -44,7 +45,7 @@ define(function (require) {
     draw_canvas(eq);
   });
 
-  var M = require('./model');
+  //var M = require('./model');
 
   function init() {
     var container = document.getElementById( 'container' );
@@ -87,7 +88,10 @@ define(function (require) {
     var callbackKey = function(geometry) {createScene(geometry,  0, -.75, -1.75, .9,"../images/nicholas-cage.jpg")};
     loader.load("../models/face.json", callbackKey);
 
-    /* TODO: tween + particle button models */
+    //bass model
+    loader.load(G.push_map[1].model, function(geometry) {G.push_map[1].geometry = geometry});
+    //treble model
+    loader.load(G.push_map[5].model, function(geometry) {G.push_map[5].geometry = geometry;});
 
     var mesh = new THREE.Mesh( new THREE.PlaneGeometry( 2, 2 ), G.shader_material );
     //G.scene.add( mesh );
@@ -104,10 +108,63 @@ define(function (require) {
 
   function createScene(geometry, x, y, z, scale, tmap) {
     G.face_model = new THREE.Mesh(geometry, G.shader_material);
-    //G.face_model = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial());
     G.face_model.position.set(x, y, z);
     G.face_model.scale.set(scale, scale, scale);
     G.scene.add(G.face_model);
+  }
+
+  function anim_button_push(d) {
+      for ( var i = 0; i < 10; i++ ) {
+          var particle;
+          if (G.push_map[d].model.endsWith("json")) {
+            if (G.push_map[d].geometry)
+              particle = new THREE.Mesh(G.push_map[d].geometry, new THREE.MeshLambertMaterial({map: THREE.ImageUtils.loadTexture(G.push_map[d].texture)}));
+              //TODO: add image as material
+          } else if (G.push_map[d].model.endsWith("dae")) {
+              // TODO: BG IMAGE/COLOR/ANIM? ROTATE? IDK? COLOR CHANGE?
+          }
+
+          if (particle) {
+            initParticle( particle, i * 10 );
+            G.scene.add( particle );
+          }
+      }
+  }
+
+  function initParticle( particle, delay ) {
+
+    var particle = this instanceof THREE.Mesh ? this : particle;
+    var delay = delay !== undefined ? delay : 0;
+
+    particle.position.set( 0, 0, 0 );
+    particle.scale.x = particle.scale.y = /*particle.scale.z =*/ Math.random() * 25 + 16;
+
+    new TWEEN.Tween( particle )
+      .delay( delay )
+      .to( {}, 10000 )
+      //.onComplete( initParticle ) 
+      .start();
+      // re-enable the above to allow looping of the landscape;
+
+    new TWEEN.Tween( particle.position )
+      .delay( delay )
+      .to( { x: Math.random() * 4000 - 2000, y: Math.random() * 1000 - 500, z: Math.random() * 4000 - 2000 }, 10000 )
+      .start();
+
+    new TWEEN.Tween( particle.scale )
+      .delay( delay )
+      .to( { x: 0.01, y: 0.01, /*z: 0.01*/ }, 10000 )
+      .start();
+
+    new TWEEN.Tween( particle.rotation )
+      .delay( delay )
+      .to( { y: getRandomArbitrary(-1,1) * Math.PI * 2}, 10000 )
+      .start();
+
+  }
+
+  function getRandomArbitrary(min, max) {
+    return Math.random() * (max - min) + min;
   }
 
   function animate() {
@@ -123,6 +180,8 @@ define(function (require) {
   function render() {
     var elapsedMilliseconds = Date.now() - startTime;
     var elapsedSeconds = elapsedMilliseconds / 1000.;
+
+    TWEEN.update();
 
     /* TODO: use A.pbr value to determine stretch amounts with linmap
       
@@ -140,11 +199,14 @@ define(function (require) {
 
   var socket = io();
   socket.on('push', function (data) {
-      A.play(G.push_map[data.button]);
+      A.play(G.push_map[data.button].id);
+      if (G.push_map[data.button].model) {
+        anim_button_push(data.button);
+      }
   });
 
   socket.on('stop', function (data) {
-      A.stop(G.push_map[data.button]);
+      A.stop(G.push_map[data.button].id);
   });
 
   socket.on("dial", function(data) {
