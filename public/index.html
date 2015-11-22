@@ -16,6 +16,7 @@
         uniform sampler2D music_tex;
         uniform sampler2D face_tex;
         uniform vec3 stretched;
+        uniform vec4 current_tint;
         varying vec2 vUv;
         void main() {
             vUv = uv;
@@ -30,6 +31,7 @@
         uniform vec3 stretched;
         uniform sampler2D music_tex;
         uniform sampler2D face_tex;
+        uniform vec4 current_tint;
         varying vec2 vUv;
         const float PI = 3.1415926536;
 
@@ -94,7 +96,7 @@
             vec4 pink = from255(vec3(255,144,222));
             vec4 blue = from255(vec3(147,144,255));
             if (beatDetect < 0.63) {
-                gl_FragColor = linMap(-1., 1., 0., 1., sin(theta*10.*loopedTime/10.+loopedTime/10.)) * texture2D(face_tex, cartP+.5);
+                gl_FragColor = linearDodge(from255(vec3(current_tint)), linMap(-1., 1., 0., 1., sin(theta*10.*loopedTime/10.+loopedTime/10.)) * texture2D(face_tex, cartP+.5));
             } else {
                 gl_FragColor = linearDodge(blue, linMap(-1., 1., 0., 1., sin(theta*10.*loopedTime/10.+loopedTime/10.)) * texture2D(face_tex, cartP+.5));
             }

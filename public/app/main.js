@@ -11,6 +11,8 @@ define(function (require) {
   , uniforms: null
   , face_model: null
   , shader_material: null
+  , tints: [new THREE.Vector4(0,0,0,1), new THREE.Vector4(255,144,222,1), new THREE.Vector4(181,247,127,1), new THREE.Vector4(0,0,0,1), new THREE.Vector4(147,144,255,1), new THREE.Vector4(255,204,82,1)]
+  , curr_tint_i: 0
   }
 
   G.push_map = {1: {id: "kick", model: "../models/pyramid.json", texture: "../images/pyramid-gradient.png"},
@@ -68,6 +70,8 @@ define(function (require) {
                  , value: G.shaderTexture }
     , face_tex: { type: "t"
                 , value: THREE.ImageUtils.loadTexture('images/nicholas-cage.jpg') }
+    , current_tint: {type: "v4"
+                , value: G.tints[G.curr_tint_i]}
     };
     // TODO: add uniform type v3 to use for stretching on dial
 
@@ -117,21 +121,24 @@ define(function (require) {
   }
 
   function anim_button_push(d) {
-      for ( var i = 0; i < 10; i++ ) {
-          var particle;
-          if (G.push_map[d].model.endsWith("json")) {
-            if (G.push_map[d].geometry)
-              particle = new THREE.Mesh(G.push_map[d].geometry, G.push_map[d].material);
-              //TODO: add image as material
-          } else if (G.push_map[d].model.endsWith("dae")) {
-              // TODO: BG IMAGE/COLOR/ANIM? ROTATE? IDK? COLOR CHANGE?
-          }
+    if (d == 4) {
+        G.curr_tint_i++;
+        G.curr_tint_i = G.curr_tint_i % G.tints.length;
+        G.uniforms.current_tint.value = G.tints[G.curr_tint_i];
+    }
+    for ( var i = 0; i < 10; i++ ) {
+      var particle;
+      if (G.push_map[d].model) {
+        if (G.push_map[d].geometry)
+          particle = new THREE.Mesh(G.push_map[d].geometry, G.push_map[d].material);
+          //TODO: add image as material
+      } 
 
-          if (particle) {
-            initParticle( particle, i * 10 );
-            G.scene.add( particle );
-          }
+      if (particle) {
+        initParticle( particle, i * 10 );
+        G.scene.add( particle );
       }
+    }
   }
 
   function initParticle( particle, delay ) {
@@ -241,9 +248,7 @@ define(function (require) {
           }
         } else if (e.keyCode == 75) {
           A.play(G.push_map[4].id);
-          if (G.push_map[4].model) {
-            anim_button_push(4);
-          }
+          anim_button_push(4);
         } else if (e.keyCode == 76) {
           A.play(G.push_map[5].id);
           if (G.push_map[5].model) {
