@@ -15,12 +15,17 @@
         uniform vec2 resolution;
         uniform sampler2D music_tex;
         uniform sampler2D face_tex;
+        uniform float clap_fraction;
         uniform vec3 stretched;
         varying vec2 vUv;
+        attribute vec4 color;
         void main() {
             vUv = uv;
             //gl_Position = vec4(position, 1.0);
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position * stretched, 1.0);
+
+            gl_Position = projectionMatrix * modelViewMatrix * vec4((position + position * vec3(color*clap_fraction)) * stretched, 1.0);
+
+            // gl_Position = projectionMatrix * modelViewMatrix * vec4((position + position * vec3(color)) * stretched, 1.0);
         }
     </script>
 
