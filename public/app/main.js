@@ -163,6 +163,11 @@ define(function (require) {
 
   }
 
+
+  function linMap (inputStart, inputEnd, outputStart, outputEnd, inputValue) {
+      return (inputValue-inputStart)/(inputEnd - inputStart) * (outputEnd - outputStart) + outputStart;
+  }
+
   function getRandomArbitrary(min, max) {
     return Math.random() * (max - min) + min;
   }
@@ -184,8 +189,6 @@ define(function (require) {
     TWEEN.update();
 
     /* TODO: use A.pbr value to determine stretch amounts with linmap
-      
-    G.uniforms.stretched.value.x = elapsedSeconds;
     G.uniforms.stretched.value.y = 1/elapsedSeconds;
     G.uniforms.stretched.value.z = 1;*/
 
@@ -211,6 +214,7 @@ define(function (require) {
 
   socket.on("dial", function(data) {
     A.update_pbr(data.dial);
+    G.uniforms.stretched.value.x = linMap(0,2,0,2,data.dial);
   })
 
   socket.on("slider", function (data) {
