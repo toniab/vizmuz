@@ -1,4 +1,5 @@
 define(function (require) {
+  var DEBUG = true;
 
   var G = {
     canvas: document.getElementById('canvas')
@@ -52,7 +53,7 @@ define(function (require) {
     //G.camera = new THREE.Camera();
     var SCREEN_WIDTH = window.innerWidth;
     var SCREEN_HEIGHT = window.innerHeight;
-    G.camera = new THREE.PerspectiveCamera(75, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 100000);
+    G.camera = new THREE.PerspectiveCamera(75, SCREEN_WIDTH / SCREEN_HEIGHT, .1, 100000);
     G.camera.position.z = 1;
     G.scene = new THREE.Scene();
     G.shaderTexture = new THREE.Texture(canvas);
@@ -200,6 +201,12 @@ define(function (require) {
     renderer.render( G.scene, G.camera );
   }
 
+  function dial_moved(d) {
+      A.update_pbr(d);
+      G.uniforms.stretched.value.x = linMap(0,2,4,0,d);
+      G.uniforms.stretched.value.y = linMap(0,2,.5,1.5,d);
+  }
+
   init();
   animate();
 
@@ -216,12 +223,47 @@ define(function (require) {
   });
 
   socket.on("dial", function(data) {
-    A.update_pbr(data.dial);
-    G.uniforms.stretched.value.x = linMap(0,2,0,2,data.dial);
+    dial_moved(data.dial);
   })
 
   socket.on("slider", function (data) {
       A.update_filter(data.slider);
   })
+
+  //74J 75K 76L 
+  /* DEBUG KEYBOARD CONTROLS */
+  if (DEBUG) {
+    window.onkeydown = function(e) {
+        if (e.keyCode == 74) {
+          A.play(G.push_map[1].id);
+          if (G.push_map[1].model) {
+            anim_button_push(1);
+          }
+        } else if (e.keyCode == 75) {
+          A.play(G.push_map[4].id);
+          if (G.push_map[4].model) {
+            anim_button_push(4);
+          }
+        } else if (e.keyCode == 76) {
+          A.play(G.push_map[5].id);
+          if (G.push_map[5].model) {
+            anim_button_push(5);
+          }
+        }
+    };
+
+    window.onkeyup = function(e) {
+      if (e.keyCode == 76) {
+        A.stop(G.push_map[5].id);
+      }
+    };
+
+    window.onmousemove = function(e) {
+      var mouseX = e.clientX;
+      var mouseY = e.clientY;
+      var val = linMap (0, window.innerWidth, 0, 2, mouseX);
+      dial_moved(val);
+    }
+  }
 
 });
