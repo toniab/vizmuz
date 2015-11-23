@@ -10,7 +10,6 @@ define(function () {
 	var SOUNDS = {};
 
 	var load_handler = function (id) {
-		console.log(id);
 		return function (buffer) {
 
 			if(!buffer) {
@@ -130,6 +129,7 @@ define(function () {
 		audioAnalyzer: audioAnalyzer,
 		play: play,
 		stop: stop,
-		update_pbr: update_pbr
+		update_pbr: update_pbr,
+		A: A
 	};
 });

@@ -195,7 +195,11 @@ define(function (require) {
 
   function animate() {
     if (G.face_model) {
-      G.face_model.rotation.y += .01;
+      var mult = A.A.pbr * A.A.pbr;
+      if (A.A.pbr > 1.5) {
+        mult = Math.pow(A.A.pbr, 3);
+      }
+      G.face_model.rotation.y += (.01 * mult);
     }
 
     requestAnimationFrame( animate );
