@@ -1,234 +1,133 @@
-define(function (require) {
-  var DEBUG = false;
+import THREE from 'three';
+import TWEEN from 'tween.js';
+import io from 'socket.io-client';
+import * as A from './audio';
 
-  var G = {
-    canvas: document.getElementById('canvas')
-  , ctx: this.canvas.getContext('2d')
-  , camera: null
-  , scene: null
-  , renderer: null
-  , shaderTexture: null
-  , uniforms: null
-  , face_model: null
-  , shader_material: null
-  , tints: [new THREE.Vector4(0,0,0,1), new THREE.Vector4(255,144,222,1), new THREE.Vector4(181,247,127,1), new THREE.Vector4(0,0,0,1), new THREE.Vector4(147,144,255,1), new THREE.Vector4(255,204,82,1)]
-  , curr_tint_i: 0
+var DEBUG = true;
+
+var G = {
+  canvas: document.getElementById('canvas')
+, ctx: null
+, camera: null
+, scene: null
+, renderer: null
+, shaderTexture: null
+, uniforms: null
+, face_model: null
+, shader_material: null
+, tints: [ new THREE.Vector4(0,0,0,1)
+         , new THREE.Vector4(255,144,222,1)
+         , new THREE.Vector4(181,247,127,1)
+         , new THREE.Vector4(0,0,0,1)
+         , new THREE.Vector4(147,144,255,1)
+         , new THREE.Vector4(255,204,82,1)
+         ]
+, curr_tint_i: 0
+}
+G.ctx = G.canvas.getContext('2d');
+
+G.push_map = { 1: { id: "kick"
+                  , model: "../models/pyramid.json"
+                  , texture: "../images/pyramid-gradient.png" }
+             , 4: { id:"clap" }
+             , 5: { id:"treble"
+                  , model: "../models/diamond.json"
+                  , texture: "../images/diamond-gradient.png" }
+             }
+
+function setPixel(imageData, x, y, r, g, b, a) {
+    var index = (x + y * imageData.width) * 4;
+    imageData.data[index+0] = r;
+    imageData.data[index+1] = g;
+    imageData.data[index+2] = b;
+    imageData.data[index+3] = a;
+}
+
+function draw_canvas(eq) {
+  var pos = 0;
+  var img = G.ctx.createImageData(256,20);
+  var x, y, r, g, b;
+  for (var i = 0; i < eq.length; i++) {
+    x = i;
+    y = 0;
+    r = eq[i];
+    g = 0;
+    b = 0;
+    setPixel(img, x, y, r, g, b, 255);
   }
+  G.ctx.putImageData(img, 0, 0);
+}
 
-  G.push_map = {1: {id: "kick", model: "../models/pyramid.json", texture: "../images/pyramid-gradient.png"},
-                4: {id:"clap"},
-                5: {id:"treble", model: "../models/diamond.json", texture: "../images/diamond-gradient.png"}
-              }
 
-  function setPixel(imageData, x, y, r, g, b, a) {
-      index = (x + y * imageData.width) * 4;
-      imageData.data[index+0] = r;
-      imageData.data[index+1] = g;
-      imageData.data[index+2] = b;
-      imageData.data[index+3] = a;
-  }
+A.audioAnalyzer(function (eq) {
+  draw_canvas(eq);
+});
 
-  function draw_canvas(eq) {
-    var pos = 0;
-    var img = G.ctx.createImageData(256,20);
-    var x, y, r, g, b;
-    for (var i = 0; i < eq.length; i++) {
-      x = i;
-      y = 0;
-      r = eq[i];
-      g = 0;
-      b = 0;
-      setPixel(img, x, y, r, g, b, 255);
-    }
-    G.ctx.putImageData(img, 0, 0);
-  }
+//var M = require('./model');
 
-  var A = require('./audio');
-  A.audioAnalyzer(function (eq) {
-    draw_canvas(eq);
+export function init() {
+  var container = document.getElementById( 'container' );
+  //G.camera = new THREE.Camera();
+  var SCREEN_WIDTH = window.innerWidth;
+  var SCREEN_HEIGHT = window.innerHeight;
+  G.camera = new THREE.PerspectiveCamera(75, SCREEN_WIDTH / SCREEN_HEIGHT, .1, 100000);
+  G.camera.position.z = 1;
+  G.scene = new THREE.Scene();
+  G.shaderTexture = new THREE.Texture(canvas);
+  G.uniforms = {
+    time: { type: "f"
+          , value: 1.0 }
+  , resolution: { type: "v2"
+                , value: new THREE.Vector2() }
+  , stretched: { type: "v3"
+                , value: new THREE.Vector3() }
+  , music_tex: { type: "t"
+               , value: G.shaderTexture }
+  , face_tex: { type: "t"
+              , value: THREE.ImageUtils.loadTexture('images/nicholas-cage.jpg') }
+  , current_tint: {type: "v4"
+              , value: G.tints[G.curr_tint_i]}
+  , clap_fraction: { type: "f"
+              , value: 0.}
+  };
+
+  G.shader_material = new THREE.ShaderMaterial( {
+    uniforms: G.uniforms,
+    vertexShader: document.getElementById( 'vertexShader' ).textContent,
+    fragmentShader: document.getElementById( 'fragmentShader' ).textContent
   });
 
-  //var M = require('./model');
+  // LIGHTS
+  var ambient = new THREE.AmbientLight(0x666666);
+  G.scene.add(ambient);
 
-  function init() {
-    var container = document.getElementById( 'container' );
-    //G.camera = new THREE.Camera();
-    var SCREEN_WIDTH = window.innerWidth;
-    var SCREEN_HEIGHT = window.innerHeight;
-    G.camera = new THREE.PerspectiveCamera(75, SCREEN_WIDTH / SCREEN_HEIGHT, .1, 100000);
-    G.camera.position.z = 1;
-    G.scene = new THREE.Scene();
-    G.shaderTexture = new THREE.Texture(canvas);
-    G.uniforms = {
-      time: { type: "f"
-            , value: 1.0 }
-    , resolution: { type: "v2"
-                  , value: new THREE.Vector2() }
-    , stretched: { type: "v3"
-                  , value: new THREE.Vector3() }
-    , music_tex: { type: "t"
-                 , value: G.shaderTexture }
-    , face_tex: { type: "t"
-                , value: THREE.ImageUtils.loadTexture('images/nicholas-cage.jpg') }
-    , current_tint: {type: "v4"
-                , value: G.tints[G.curr_tint_i]}
-    , clap_fraction: { type: "f"
-                , value: 0.}
-    };
-    // TODO: add uniform type v3 to use for stretching on dial
+  var directionalLight = new THREE.DirectionalLight(0xffeedd);
+  directionalLight.position.set(0, 70, 100).normalize();
+  G.scene.add(directionalLight);
 
-    G.shader_material = new THREE.ShaderMaterial( {
-      uniforms: G.uniforms,
-      vertexShader: document.getElementById( 'vertexShader' ).textContent,
-      fragmentShader: document.getElementById( 'fragmentShader' ).textContent
-    });
+  var loader = new THREE.JSONLoader();
+  var callbackKey = function(geometry) {createScene(geometry,  0, -.75, -1.75, .9,"../images/nicholas-cage.jpg")};
+  loader.load("../models/face.json", callbackKey);
 
-    // LIGHTS
-    var ambient = new THREE.AmbientLight(0x666666);
-    G.scene.add(ambient);
+  //bass model
+  loader.load(G.push_map[1].model, function(geometry) {G.push_map[1].geometry = geometry});
+  G.push_map[1].material = new THREE.MeshLambertMaterial({map: THREE.ImageUtils.loadTexture(G.push_map[1].texture)});
+  //treble model
+  loader.load(G.push_map[5].model, function(geometry) {G.push_map[5].geometry = geometry;});
+  G.push_map[5].material = new THREE.MeshLambertMaterial({map: THREE.ImageUtils.loadTexture(G.push_map[5].texture)});
 
-    var directionalLight = new THREE.DirectionalLight(0xffeedd);
-    directionalLight.position.set(0, 70, 100).normalize();
-    G.scene.add(directionalLight);
+  var mesh = new THREE.Mesh( new THREE.PlaneGeometry( 2, 2 ), G.shader_material );
+  //G.scene.add( mesh );
+  G.renderer = new THREE.WebGLRenderer();
+  container.appendChild( G.renderer.domElement );
+  G.uniforms.resolution.value.x = window.innerWidth;
+  G.uniforms.resolution.value.y = window.innerHeight;
 
-    var loader = new THREE.JSONLoader();
-    var callbackKey = function(geometry) {createScene(geometry,  0, -.75, -1.75, .9,"../images/nicholas-cage.jpg")};
-    loader.load("../models/face.json", callbackKey);
+  G.uniforms.stretched.value.x = 1;
+  G.uniforms.stretched.value.y = 1;
+  G.uniforms.stretched.value.z = 1;
+  G.renderer.setSize( window.innerWidth, window.innerHeight );
 
-    //bass model
-    loader.load(G.push_map[1].model, function(geometry) {G.push_map[1].geometry = geometry});
-    G.push_map[1].material = new THREE.MeshLambertMaterial({map: THREE.ImageUtils.loadTexture(G.push_map[1].texture)});
-    //treble model
-    loader.load(G.push_map[5].model, function(geometry) {G.push_map[5].geometry = geometry;});
-    G.push_map[5].material = new THREE.MeshLambertMaterial({map: THREE.ImageUtils.loadTexture(G.push_map[5].texture)});
-
-    var mesh = new THREE.Mesh( new THREE.PlaneGeometry( 2, 2 ), G.shader_material );
-    //G.scene.add( mesh );
-    renderer = new THREE.WebGLRenderer();
-    container.appendChild( renderer.domElement );
-    G.uniforms.resolution.value.x = window.innerWidth;
-    G.uniforms.resolution.value.y = window.innerHeight;
-
-    G.uniforms.stretched.value.x = 1;
-    G.uniforms.stretched.value.y = 1;
-    G.uniforms.stretched.value.z = 1;
-    renderer.setSize( window.innerWidth, window.innerHeight );
-  }
-
-  function createScene(geometry, x, y, z, scale, tmap) {
-    G.face_model = new THREE.Mesh(geometry, G.shader_material);
-    G.face_model.position.set(x, y, z);
-    G.face_model.scale.set(scale, scale, scale);
-    G.scene.add(G.face_model);
-  }
-
-  function anim_button_push(d) {
-    if (d == 4) {
-        G.curr_tint_i++;
-        G.curr_tint_i = G.curr_tint_i % G.tints.length;
-        G.uniforms.current_tint.value = G.tints[G.curr_tint_i];
-        G.uniforms.clap_fraction.value = 1;
-        G.clap_anim = setInterval(function() {
-          G.uniforms.clap_fraction.value = G.uniforms.clap_fraction.value -.1;
-          if (G.uniforms.clap_fraction.value <= 0) {
-            G.uniforms.clap_fraction.value = 0;
-            clearInterval(G.clap_anim);
-          }
-        }, 30);
-    }
-    for ( var i = 0; i < 10; i++ ) {
-      var particle;
-      if (G.push_map[d].model) {
-        if (G.push_map[d].geometry)
-          particle = new THREE.Mesh(G.push_map[d].geometry, G.push_map[d].material);
-          //TODO: add image as material
-      } 
-
-      if (particle) {
-        initParticle( particle, i * 10 );
-        G.scene.add( particle );
-      }
-    }
-  }
-
-  function initParticle( particle, delay ) {
-
-    var particle = this instanceof THREE.Mesh ? this : particle;
-    var delay = delay !== undefined ? delay : 0;
-
-    particle.position.set( 0, 0, 0 );
-    particle.scale.x = particle.scale.y = /*particle.scale.z =*/ Math.random() * 25 + 16;
-
-    new TWEEN.Tween( particle )
-      .delay( delay )
-      .to( {}, 10000 )
-      //.onComplete( initParticle ) 
-      .start();
-      // re-enable the above to allow looping of the landscape;
-
-    new TWEEN.Tween( particle.position )
-      .delay( delay )
-      .to( { x: Math.random() * 4000 - 2000, y: Math.random() * 1000 - 500, z: Math.random() * 4000 - 2000 }, 10000 )
-      .start();
-
-    new TWEEN.Tween( particle.scale )
-      .delay( delay )
-      .to( { x: 0.01, y: 0.01, /*z: 0.01*/ }, 12000 )
-      .onComplete(function(){G.scene.remove( particle )})
-      .start();
-
-    new TWEEN.Tween( particle.rotation )
-      .delay( delay )
-      .to( { y: getRandomArbitrary(-1,1) * Math.PI * 2}, 10000 )
-      .start();
-
-  }
-
-
-  function linMap (inputStart, inputEnd, outputStart, outputEnd, inputValue) {
-      return (inputValue-inputStart)/(inputEnd - inputStart) * (outputEnd - outputStart) + outputStart;
-  }
-
-  function getRandomArbitrary(min, max) {
-    return Math.random() * (max - min) + min;
-  }
-
-  function animate() {
-    if (G.face_model) {
-      var mult = A.A.pbr * A.A.pbr;
-      if (A.A.pbr > 1.5) {
-        mult = Math.pow(A.A.pbr, 3);
-      }
-      G.face_model.rotation.y += (.01 * mult);
-    }
-
-    requestAnimationFrame( animate );
-    render();
-  }
-
-  var startTime = Date.now();
-  function render() {
-    var elapsedMilliseconds = Date.now() - startTime;
-    var elapsedSeconds = elapsedMilliseconds / 1000.;
-
-    TWEEN.update();
-
-    /* TODO: use A.pbr value to determine stretch amounts with linmap
-    G.uniforms.stretched.value.y = 1/elapsedSeconds;
-    G.uniforms.stretched.value.z = 1;*/
-
-    G.uniforms.time.value = 60. * elapsedSeconds;
-    G.shaderTexture.needsUpdate = true;
-    renderer.render( G.scene, G.camera );
-  }
-
-  function dial_moved(d) {
-      A.update_pbr(d);
-      G.uniforms.stretched.value.x = linMap(0,2,4,0,d);
-      G.uniforms.stretched.value.y = linMap(0,2,.5,1.5,d);
-  }
-
-  init();
   animate();
 
   var socket = io();
@@ -243,13 +142,17 @@ define(function (require) {
 
   socket.on("dial", function(data) {
     dial_moved(data.dial);
-  })
+  });
 
   socket.on("slider", function (data) {
       // no freq filter yet
-  })
+  });
 
-  //74J 75K 76L 
+  socket.on("connect_error", function (d) {
+    // console.log("Unable to connect!");
+  });
+
+  //74J 75K 76L
   /* DEBUG KEYBOARD CONTROLS */
   if (DEBUG) {
     window.onkeydown = function(e) {
@@ -282,5 +185,113 @@ define(function (require) {
       dial_moved(val);
     }
   }
+}
 
-});
+function createScene(geometry, x, y, z, scale, tmap) {
+  G.face_model = new THREE.Mesh(geometry, G.shader_material);
+  G.face_model.position.set(x, y, z);
+  G.face_model.scale.set(scale, scale, scale);
+  G.scene.add(G.face_model);
+}
+
+function anim_button_push(d) {
+  if (d == 4) {
+      G.curr_tint_i++;
+      G.curr_tint_i = G.curr_tint_i % G.tints.length;
+      G.uniforms.current_tint.value = G.tints[G.curr_tint_i];
+      G.uniforms.clap_fraction.value = 1;
+      G.clap_anim = setInterval(function() {
+        G.uniforms.clap_fraction.value = G.uniforms.clap_fraction.value -.1;
+        if (G.uniforms.clap_fraction.value <= 0) {
+          G.uniforms.clap_fraction.value = 0;
+          clearInterval(G.clap_anim);
+        }
+      }, 30);
+  }
+  for ( var i = 0; i < 10; i++ ) {
+    var particle;
+    if (G.push_map[d].model) {
+      if (G.push_map[d].geometry)
+        particle = new THREE.Mesh(G.push_map[d].geometry, G.push_map[d].material);
+        //TODO: add image as material
+    }
+
+    if (particle) {
+      initParticle( particle, i * 10 );
+      G.scene.add( particle );
+    }
+  }
+}
+
+function initParticle( particle, delay ) {
+
+  var particle = this instanceof THREE.Mesh ? this : particle;
+  var delay = delay !== undefined ? delay : 0;
+
+  particle.position.set( 0, 0, 0 );
+  particle.scale.x = particle.scale.y = /*particle.scale.z =*/ Math.random() * 25 + 16;
+
+  new TWEEN.Tween( particle )
+    .delay( delay )
+    .to( {}, 10000 )
+    //.onComplete( initParticle )
+    .start();
+    // re-enable the above to allow looping of the landscape;
+
+  new TWEEN.Tween( particle.position )
+    .delay( delay )
+    .to( { x: Math.random() * 4000 - 2000, y: Math.random() * 1000 - 500, z: Math.random() * 4000 - 2000 }, 10000 )
+    .start();
+
+  new TWEEN.Tween( particle.scale )
+    .delay( delay )
+    .to( { x: 0.01, y: 0.01, /*z: 0.01*/ }, 12000 )
+    .onComplete(function(){G.scene.remove( particle )})
+    .start();
+
+  new TWEEN.Tween( particle.rotation )
+    .delay( delay )
+    .to( { y: getRandomArbitrary(-1,1) * Math.PI * 2}, 10000 )
+    .start();
+
+}
+
+
+function linMap (inputStart, inputEnd, outputStart, outputEnd, inputValue) {
+    return (inputValue-inputStart)/(inputEnd - inputStart) * (outputEnd - outputStart) + outputStart;
+}
+
+function getRandomArbitrary(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+function animate() {
+  if (G.face_model) {
+    var mult = A.A.pbr * A.A.pbr;
+    if (A.A.pbr > 1.5) {
+      mult = Math.pow(A.A.pbr, 3);
+    }
+    G.face_model.rotation.y += (.01 * mult);
+  }
+
+  requestAnimationFrame( animate );
+  render();
+}
+
+var startTime = Date.now();
+function render() {
+  var elapsedMilliseconds = Date.now() - startTime;
+  var elapsedSeconds = elapsedMilliseconds / 1000.;
+
+  TWEEN.update();
+
+  G.uniforms.time.value = 60. * elapsedSeconds;
+  G.shaderTexture.needsUpdate = true;
+  G.renderer.render( G.scene, G.camera );
+}
+
+function dial_moved(d) {
+    A.update_pbr(d);
+    G.uniforms.stretched.value.x = linMap(0,2,4,0,d);
+    G.uniforms.stretched.value.y = linMap(0,2,.5,1.5,d);
+}

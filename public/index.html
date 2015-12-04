@@ -5,11 +5,13 @@
     <link rel="stylesheet" type="text/css" href="css/normalize.css">
     <meta name="viewport" content="width=device-width,
         initial-scale=1, maximum-scale=1, user-scalable=0"/>
-    <script src="lib/three.min.js"></script>
-    <script src="lib/tween.min.js"></script>
-    <script src="lib/socket.io-1.1.0.js"></script>
+    <script type="text/javascript" src='jspm_packages/system.js'></script>
+    <script type="text/javascript" src="config.js"></script>
+    <!-- // <script src="lib/three.min.js"></script> -->
+    <!-- // <script src="lib/tween.min.js"></script> -->
+    <!-- // <script src="lib/socket.io-1.1.0.js"></script> -->
     <!--<script src="lib/ColladaLoader.js"></script>-->
-    <script data-main="app/main" src="lib/require.js"></script>
+    <!-- // <script data-main="app/main" src="lib/require.js"></script> -->
     <script id="vertexShader" type="x-shader/x-vertex">
         uniform float time;
         uniform vec2 resolution;
@@ -123,5 +125,10 @@
     <body>
         <div id="container"></div>
         <canvas id="canvas" width='512' height='512'></canvas>
+        <script type="text/javascript">
+            System.import('app/main').then(function(app) {
+                app.init();
+            });
+        </script>
     </body>
 </html>
