@@ -45,6 +45,9 @@ export function audioAnalyzer (cb) {
 			];
 
 	try {
+		if (window.AudioContext === undefined) {
+			window.AudioContext = webkitAudioContext;
+		}
 		A.ctx = new AudioContext();
 	}
 	catch(e) {
